@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cakie premium palette — cream, blush, chocolate */
+    --background: 36 33% 97%;
+    --foreground: 25 30% 14%;
+
+    --card: 36 40% 99%;
+    --card-foreground: 25 30% 14%;
+
+    --popover: 36 40% 99%;
+    --popover-foreground: 25 30% 14%;
+
+    --primary: 22 35% 18%;
+    --primary-foreground: 36 40% 97%;
+
+    --secondary: 30 25% 92%;
+    --secondary-foreground: 25 30% 14%;
+
+    --muted: 32 20% 93%;
+    --muted-foreground: 25 12% 42%;
+
+    --accent: 14 40% 70%;
+    --accent-foreground: 25 30% 14%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 36 40% 97%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 22 35% 18%;
+
+    --radius: 1rem;
+
+    /* Brand tokens */
+    --cream: 36 45% 95%;
+    --blush: 14 55% 85%;
+    --beige: 32 30% 85%;
+    --chocolate: 22 40% 20%;
+    --gold: 38 50% 55%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(36 45% 96% / 0.85), hsl(14 55% 88% / 0.6));
+    --gradient-soft: linear-gradient(180deg, hsl(36 33% 97%), hsl(30 30% 92%));
+    --gradient-warm: radial-gradient(ellipse at top, hsl(14 55% 88% / 0.5), transparent 60%);
+
+    --shadow-glass: 0 8px 32px -8px hsl(22 30% 25% / 0.12);
+    --shadow-elevated: 0 24px 60px -20px hsl(22 30% 25% / 0.25);
+    --shadow-soft: 0 2px 12px -2px hsl(22 30% 25% / 0.08);
+
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(36 40% 99% / 0.55);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid hsl(36 40% 99% / 0.7);
+    box-shadow: var(--shadow-glass);
+  }
+  .glass-dark {
+    background: hsl(22 35% 18% / 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(36 40% 99% / 0.15);
+  }
+  .glass-nav {
+    background: hsl(36 40% 99% / 0.6);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid hsl(30 20% 88% / 0.6);
+  }
+}
+
+@layer utilities {
+  .marquee {
+    animation: marquee 60s linear infinite;
+  }
+  .marquee-pause:hover .marquee { animation-play-state: paused; }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .fade-up { animation: fadeUp 0.8s ease-out both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

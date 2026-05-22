@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@vitejs/plugin-react-swc": "^4.3.1",
+    "autoprefixer": "^10.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.16.0",
+    "postcss": "^8.5.15",
+    "react-router-dom": "^7.15.1",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
+  }
+}

@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import MyOrders from "./pages/MyOrders";
 import ManageOrders from "./pages/ManageOrders";
+import ManageUsers from "./pages/ManageUsers";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/manage-orders" element={<ManageOrders />} />
+        <Route path="/manage-users" element={<ManageUsers />} />
       </Routes>
     </BrowserRouter>
   );

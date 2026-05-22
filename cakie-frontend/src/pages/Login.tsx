@@ -24,9 +24,9 @@ const Login = () => {
 
         <p className="text-sm text-center text-gray-500 mt-5">
           Don&apos;t have an account?{" "}
-          <span className="text-[#c7825a] font-medium cursor-pointer">
+          <a href="/register" className="text-[#c7825a] font-medium">
             Register
-          </span>
+          </a>
         </p>
       </div>
     </div>

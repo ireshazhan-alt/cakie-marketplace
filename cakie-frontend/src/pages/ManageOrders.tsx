@@ -11,6 +11,7 @@ import {
   Search,
   ShoppingBag,
   Truck,
+  X,
   XCircle,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -74,6 +75,7 @@ const ManageOrders = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     const token = localStorage.getItem("token");
@@ -157,6 +159,13 @@ const ManageOrders = () => {
             : order
         )
       );
+
+      if (selectedOrder?._id === orderId) {
+        setSelectedOrder({
+          ...selectedOrder,
+          orderStatus: data.order?.orderStatus || status,
+        });
+      }
 
       setMessage("Order status updated successfully.");
     } catch (error) {
@@ -498,7 +507,7 @@ const ManageOrders = () => {
                       </Button>
 
                       <Button
-                        onClick={() => navigate(`/orders/${order._id}`)}
+                        onClick={() => setSelectedOrder(order)}
                         variant="outline"
                         className="rounded-full bg-white/70"
                       >
@@ -527,6 +536,151 @@ const ManageOrders = () => {
           </div>
         )}
       </section>
+
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-chocolate/30 px-4 backdrop-blur-sm">
+          <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] bg-[#fffaf7] p-6 shadow-elevated">
+            <button
+              onClick={() => setSelectedOrder(null)}
+              className="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full bg-white/80 text-chocolate shadow-soft hover:bg-[#fff0f4]"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="mb-6 pr-10">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Order Details
+              </p>
+
+              <h2 className="mt-2 font-display text-3xl text-chocolate md:text-4xl">
+                {selectedOrder.cakeName}
+              </h2>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                Order #{String(selectedOrder._id).slice(-6)} •{" "}
+                {formatDate(selectedOrder.createdAt)}
+              </p>
+            </div>
+
+            <div className="mb-6 flex flex-wrap gap-3">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(
+                  selectedOrder.orderStatus
+                )}`}
+              >
+                {selectedOrder.orderStatus}
+              </span>
+
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-chocolate shadow-soft">
+                Payment: {selectedOrder.paymentStatus || "N/A"}
+              </span>
+
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-chocolate shadow-soft">
+                Method: {selectedOrder.paymentMethod || "N/A"}
+              </span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-3xl bg-white/70 p-5 shadow-soft">
+                <h3 className="mb-4 font-display text-xl text-chocolate">
+                  Cake Information
+                </h3>
+
+                <p className="text-sm">
+                  <span className="font-medium text-chocolate">Cake:</span>{" "}
+                  {selectedOrder.cakeName}
+                </p>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-medium text-chocolate">Quantity:</span>{" "}
+                  {selectedOrder.quantity}
+                </p>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-medium text-chocolate">Total:</span>{" "}
+                  Rs. {Number(selectedOrder.totalPrice || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-white/70 p-5 shadow-soft">
+                <h3 className="mb-4 font-display text-xl text-chocolate">
+                  Customer Information
+                </h3>
+
+                <p className="text-sm">
+                  <span className="font-medium text-chocolate">Name:</span>{" "}
+                  {selectedOrder.billingName ||
+                    selectedOrder.customerId?.name ||
+                    "N/A"}
+                </p>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-medium text-chocolate">Email:</span>{" "}
+                  {selectedOrder.customerId?.email || "N/A"}
+                </p>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-medium text-chocolate">Phone:</span>{" "}
+                  {selectedOrder.phoneNumber ||
+                    selectedOrder.customerId?.phone ||
+                    "N/A"}
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-white/70 p-5 shadow-soft md:col-span-2">
+                <h3 className="mb-4 font-display text-xl text-chocolate">
+                  Delivery Information
+                </h3>
+
+                <p className="text-sm">
+                  <span className="font-medium text-chocolate">Address:</span>{" "}
+                  {selectedOrder.deliveryAddress}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <Button
+                onClick={() => updateStatus(selectedOrder._id, "Accepted")}
+                disabled={
+                  selectedOrder.orderStatus === "Accepted" ||
+                  selectedOrder.orderStatus === "Delivered"
+                }
+                className="rounded-full bg-green-600 hover:bg-green-700"
+              >
+                Accept
+              </Button>
+
+              <Button
+                onClick={() => updateStatus(selectedOrder._id, "Rejected")}
+                disabled={
+                  selectedOrder.orderStatus === "Rejected" ||
+                  selectedOrder.orderStatus === "Delivered"
+                }
+                className="rounded-full bg-red-500 hover:bg-red-600"
+              >
+                Reject
+              </Button>
+
+              <Button
+                onClick={() => updateStatus(selectedOrder._id, "Delivered")}
+                disabled={selectedOrder.orderStatus === "Delivered"}
+                className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+              >
+                Mark Delivered
+              </Button>
+
+              <Button
+                onClick={() => setSelectedOrder(null)}
+                variant="outline"
+                className="rounded-full bg-white/70"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

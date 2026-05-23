@@ -8,6 +8,7 @@ import ManageOrders from "./pages/ManageOrders";
 import ManageUsers from "./pages/ManageUsers";
 import OrderDetails from "./pages/OrderDetails";
 import PlaceOrder from "./pages/PlaceOrder";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/manage-users" element={<ManageUsers />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
         <Route path="/place-order" element={<PlaceOrder />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

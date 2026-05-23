@@ -52,8 +52,12 @@ const Login = () => {
       setMessage("Login successful!");
 
       setTimeout(() => {
-        navigate("/");
-      }, 800);
+  if (data.user.role === "admin") {
+    navigate("/admin-dashboard");
+  } else {
+    navigate("/");
+  }
+}, 800);
     } catch (error) {
       setMessage("Something went wrong. Please try again.");
     } finally {

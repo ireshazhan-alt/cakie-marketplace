@@ -7,16 +7,14 @@ const {
   updateUserBlockStatus,
 } = require("./controller");
 
-const { protect } = require("../../middleware/authMiddleware");
+const { protect, adminOnly } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/profile", protect, getUserProfile);
-router.get("/", protect, getAllUsers);
-
-// block / unblock user
-router.put("/:id/block", protect, updateUserBlockStatus);
+router.get("/", protect, adminOnly, getAllUsers);
+router.put("/:id/block", protect, adminOnly, updateUserBlockStatus);
 
 module.exports = router;

@@ -52,7 +52,7 @@ const Login = () => {
       setMessage("Login successful!");
 
       setTimeout(() => {
-        navigate("/profile");
+        navigate("/");
       }, 800);
     } catch (error) {
       setMessage("Something went wrong. Please try again.");

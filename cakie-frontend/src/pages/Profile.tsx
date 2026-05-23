@@ -3,14 +3,17 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   BadgeCheck,
+  Edit3,
   Home,
   LogOut,
   Mail,
   MapPin,
   Phone,
+  Save,
   ShieldCheck,
   UserCircle,
   UserRound,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +33,16 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
+  const [editData, setEditData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -60,6 +71,11 @@ const Profile = () => {
         }
 
         setUser(data.user);
+        setEditData({
+          name: data.user.name || "",
+          phone: data.user.phone || "",
+          address: data.user.address || "",
+        });
       } catch (error) {
         console.error(error);
         setMessage("Failed to load profile.");
@@ -70,6 +86,74 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setMessage("");
+
+      const response = await fetch("http://localhost:5000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editData.name,
+          phone: editData.phone,
+          address: editData.address,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Failed to update profile");
+        return;
+      }
+
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setIsEditing(false);
+      setMessage("Profile updated successfully.");
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong while updating profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (!user) return;
+
+    setEditData({
+      name: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+    });
+
+    setIsEditing(false);
+    setMessage("");
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -118,14 +202,26 @@ const Profile = () => {
             Back
           </Button>
 
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="rounded-full border-red-100 bg-white/70 text-red-500 hover:bg-red-50 hover:text-red-600"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {!isEditing && (
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+              >
+                <Edit3 className="mr-2 h-4 w-4" />
+                Edit Profile
+              </Button>
+            )}
+
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="rounded-full border-red-100 bg-white/70 text-red-500 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         <section className="glass relative overflow-hidden rounded-[2rem] p-6 shadow-soft md:p-8">
@@ -155,7 +251,7 @@ const Profile = () => {
                 </h1>
 
                 <p className="mt-2 text-sm text-muted-foreground">
-                  View your personal account details and current access role.
+                  View and update your personal account details.
                 </p>
               </div>
             </div>
@@ -177,7 +273,7 @@ const Profile = () => {
         </section>
 
         {message && (
-          <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-5 py-3 text-sm text-red-600">
+          <div className="mt-5 rounded-2xl border border-[#f1ded6] bg-white/80 px-5 py-3 text-sm text-chocolate">
             {message}
           </div>
         )}
@@ -227,13 +323,39 @@ const Profile = () => {
             </section>
 
             <section className="glass mt-6 rounded-3xl p-6 md:p-8">
-              <div className="mb-6">
-                <h2 className="font-display text-3xl text-chocolate">
-                  Personal Details
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  These details are saved in your Cakie account.
-                </p>
+              <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="font-display text-3xl text-chocolate">
+                    Personal Details
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {isEditing
+                      ? "Update your editable account details below."
+                      : "These details are saved in your Cakie account."}
+                  </p>
+                </div>
+
+                {isEditing && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={saving}
+                      className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                      className="rounded-full bg-white/70"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -245,8 +367,10 @@ const Profile = () => {
                   <Input
                     className="bg-white/70"
                     type="text"
-                    value={user.name}
-                    readOnly
+                    name="name"
+                    value={isEditing ? editData.name : user.name}
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
                   />
                 </div>
 
@@ -271,8 +395,10 @@ const Profile = () => {
                   <Input
                     className="bg-white/70"
                     type="text"
-                    value={user.phone || "Not provided"}
-                    readOnly
+                    name="phone"
+                    value={isEditing ? editData.phone : user.phone || "Not provided"}
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
                   />
                 </div>
 
@@ -297,8 +423,12 @@ const Profile = () => {
                   <Input
                     className="bg-white/70"
                     type="text"
-                    value={user.address || "Not provided"}
-                    readOnly
+                    name="address"
+                    value={
+                      isEditing ? editData.address : user.address || "Not provided"
+                    }
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
                   />
                 </div>
               </div>

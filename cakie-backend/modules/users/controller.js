@@ -165,6 +165,43 @@ const updateUserBlockStatus = async (req, res) => {
     });
   }
 };
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+
+    const user = await User.findById(req.user._id || req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.name = name || user.name;
+    user.phone = phone || user.phone;
+    user.address = address || user.address;
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        isBlocked: updatedUser.isBlocked,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -172,4 +209,5 @@ module.exports = {
   getUserProfile,
   getAllUsers,
   updateUserBlockStatus,
+  updateUserProfile,
 };

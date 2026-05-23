@@ -5,6 +5,7 @@ const {
   getUserProfile,
   getAllUsers,
   updateUserBlockStatus,
+  updateUserProfile,
 } = require("./controller");
 
 const { protect, adminOnly } = require("../../middleware/authMiddleware");
@@ -16,5 +17,6 @@ router.post("/login", loginUser);
 router.get("/profile", protect, getUserProfile);
 router.get("/", protect, adminOnly, getAllUsers);
 router.put("/:id/block", protect, adminOnly, updateUserBlockStatus);
+router.put("/profile", protect, updateUserProfile);
 
 module.exports = router;

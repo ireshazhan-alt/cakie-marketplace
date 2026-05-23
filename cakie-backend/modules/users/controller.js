@@ -34,6 +34,7 @@ const registerUser = async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
+        isBlocked: user.isBlocked,
       },
     });
   } catch (error) {
@@ -43,11 +44,11 @@ const registerUser = async (req, res) => {
     });
   }
 };
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check user exists
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -56,14 +57,12 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Check blocked user
     if (user.isBlocked) {
       return res.status(403).json({
         message: "Your account has been blocked",
       });
     }
 
-    // Compare password
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
@@ -72,7 +71,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Create token
     const token = jwt.sign(
       {
         id: user._id,
@@ -94,6 +92,7 @@ const loginUser = async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
+        isBlocked: user.isBlocked,
       },
     });
   } catch (error) {
@@ -103,6 +102,7 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
 const getUserProfile = async (req, res) => {
   try {
     res.status(200).json({
@@ -115,6 +115,7 @@ const getUserProfile = async (req, res) => {
     });
   }
 };
+
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");

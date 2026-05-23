@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 
 type Customer = {
@@ -51,8 +52,15 @@ const ManageOrders = () => {
         return;
       }
 
-      setOrders(data.orders);
+      if (Array.isArray(data)) {
+        setOrders(data);
+      } else if (Array.isArray(data.orders)) {
+        setOrders(data.orders);
+      } else {
+        setOrders([]);
+      }
     } catch (error) {
+      console.error(error);
       setMessage("Something went wrong while loading orders.");
     } finally {
       setLoading(false);
@@ -94,137 +102,170 @@ const ManageOrders = () => {
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId
-            ? { ...order, orderStatus: data.order.orderStatus }
+            ? {
+                ...order,
+                orderStatus: data.order?.orderStatus || status,
+              }
             : order
         )
       );
 
       setMessage("Order status updated successfully.");
     } catch (error) {
+      console.error(error);
       setMessage("Something went wrong while updating status.");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fff7f1]">
-        <p className="text-[#5c4033] font-medium">Loading orders...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#fff7f1] px-4 py-28">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#5c4033]">
-            Manage Orders
-          </h1>
-          <p className="text-gray-500 mt-2">
-            View, accept, reject, and update customer orders.
+    <AdminLayout>
+      <div className="mb-8">
+        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+          Admin
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl text-chocolate mt-3">
+          Manage Orders
+        </h1>
+        <p className="text-muted-foreground mt-3">
+          View, accept, reject, and update customer cake orders.
+        </p>
+      </div>
+
+      {loading && (
+        <div className="rounded-3xl border border-[#f1ded6] bg-white/80 p-8 text-center shadow-sm">
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      )}
+
+      {message && (
+        <p className="mb-5 rounded-2xl border border-[#f1ded6] bg-white/80 px-4 py-3 text-sm text-chocolate shadow-sm">
+          {message}
+        </p>
+      )}
+
+      {!loading && orders.length === 0 ? (
+        <div className="rounded-3xl border border-[#f1ded6] bg-white/80 p-8 text-center shadow-sm backdrop-blur-md">
+          <h2 className="text-xl font-semibold text-chocolate">
+            No orders found
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Customer orders will appear here after they place orders.
           </p>
         </div>
+      ) : null}
 
-        {message && (
-          <p className="bg-white/80 shadow rounded-2xl p-4 text-[#8a5438] mb-5">
-            {message}
-          </p>
-        )}
+      {!loading && orders.length > 0 && (
+        <div className="grid gap-5">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="rounded-3xl border border-[#f1ded6] bg-white/90 p-6 shadow-sm backdrop-blur-md"
+            >
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    Order ID: {order._id}
+                  </p>
 
-        {orders.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-md shadow rounded-2xl p-8 text-center">
-            <h2 className="text-xl font-semibold text-[#5c4033]">
-              No orders found
-            </h2>
-            <p className="text-gray-500 mt-2">
-              Customer orders will appear here after they place orders.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-5">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="bg-white/80 backdrop-blur-md shadow rounded-2xl p-6"
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                  <div>
-                    <p className="text-sm text-gray-400">
-                      Order ID: {order._id}
+                  <h2 className="mt-2 text-2xl font-semibold text-chocolate">
+                    {order.cakeName}
+                  </h2>
+
+                  <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
+                    <p>
+                      <span className="font-medium text-[#3f2a22]">
+                        Customer:
+                      </span>{" "}
+                      {order.customerId?.name || "Unknown customer"}
                     </p>
 
-                    <h2 className="text-xl font-semibold text-[#5c4033] mt-1">
-                      {order.cakeName}
-                    </h2>
-
-                    <p className="text-gray-500 mt-1">
-                      Customer: {order.customerId?.name || "Unknown customer"}
+                    <p>
+                      <span className="font-medium text-[#3f2a22]">
+                        Email:
+                      </span>{" "}
+                      {order.customerId?.email || "Not available"}
                     </p>
 
-                    <p className="text-gray-500">
-                      Email: {order.customerId?.email || "Not available"}
+                    <p>
+                      <span className="font-medium text-[#3f2a22]">
+                        Phone:
+                      </span>{" "}
+                      {order.customerId?.phone || "Not provided"}
                     </p>
 
-                    <p className="text-gray-500">
-                      Phone: {order.customerId?.phone || "Not provided"}
+                    <p>
+                      <span className="font-medium text-[#3f2a22]">
+                        Quantity:
+                      </span>{" "}
+                      {order.quantity}
                     </p>
 
-                    <p className="text-gray-500">
-                      Quantity: {order.quantity}
+                    <p className="md:col-span-2">
+                      <span className="font-medium text-[#3f2a22]">
+                        Delivery:
+                      </span>{" "}
+                      {order.deliveryAddress}
                     </p>
 
-                    <p className="text-gray-500">
-                      Delivery: {order.deliveryAddress}
-                    </p>
-
-                    <p className="text-gray-500">
-                      Date: {new Date(order.createdAt).toLocaleDateString()}
+                    <p>
+                      <span className="font-medium text-[#3f2a22]">
+                        Date:
+                      </span>{" "}
+                      {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+                </div>
 
-                  <div className="flex flex-col lg:items-end gap-3">
-                    <p className="text-lg font-bold text-[#5c4033]">
-                      Rs. {order.totalPrice}
-                    </p>
+                <div className="flex flex-col gap-3 xl:items-end">
+                  <p className="text-2xl font-bold text-chocolate">
+                    Rs. {order.totalPrice}
+                  </p>
 
-                    <span className="px-4 py-1 rounded-full text-sm bg-[#f4dfd0] text-[#8a5438] capitalize">
-                      {order.orderStatus}
-                    </span>
+                  <span className="rounded-full bg-[#fff0f4] px-4 py-1 text-sm font-medium capitalize text-chocolate">
+                    {order.orderStatus}
+                  </span>
 
-                    <p className="text-sm text-gray-500 capitalize">
-                      Payment: {order.paymentStatus}
-                    </p>
+                  <p className="text-sm capitalize text-muted-foreground">
+                    Payment: {order.paymentStatus}
+                  </p>
 
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        onClick={() => updateStatus(order._id, "accepted")}
-                        className="bg-green-600 hover:bg-green-700 rounded-full"
-                      >
-                        Accept
-                      </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => updateStatus(order._id, "Accepted")}
+                      className="rounded-full bg-green-600 hover:bg-green-700"
+                    >
+                      Accept
+                    </Button>
 
-                      <Button
-                        onClick={() => updateStatus(order._id, "rejected")}
-                        className="bg-red-500 hover:bg-red-600 rounded-full"
-                      >
-                        Reject
-                      </Button>
+                    <Button
+                      onClick={() => updateStatus(order._id, "Rejected")}
+                      className="rounded-full bg-red-500 hover:bg-red-600"
+                    >
+                      Reject
+                    </Button>
 
-                      <Button
-                        onClick={() => updateStatus(order._id, "delivered")}
-                        className="bg-[#c7825a] hover:bg-[#a96846] rounded-full"
-                      >
-                        Mark Delivered
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => updateStatus(order._id, "Delivered")}
+                      className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+                    >
+                      Mark Delivered
+                    </Button>
+
+                    <Button
+                      onClick={() => navigate(`/orders/${order._id}`)}
+                      variant="outline"
+                      className="rounded-full"
+                    >
+                      View Details
+                    </Button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </AdminLayout>
   );
 };
 

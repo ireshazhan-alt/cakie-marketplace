@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Cake,
   CreditCard,
-  Home,
   MapPin,
   PackageCheck,
   Phone,

@@ -118,12 +118,49 @@ const getUserProfile = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find({ role: { $ne: "admin" } }).select("-password");
 
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+}; 
+const updateUserBlockStatus = async (req, res) => {
+  try {
+    const { isBlocked } = req.body;
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.isBlocked = isBlocked;
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      message: updatedUser.isBlocked
+        ? "User blocked successfully"
+        : "User unblocked successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        isBlocked: updatedUser.isBlocked,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update user block status",
       error: error.message,
     });
   }
@@ -134,4 +171,5 @@ module.exports = {
   loginUser,
   getUserProfile,
   getAllUsers,
+  updateUserBlockStatus,
 };

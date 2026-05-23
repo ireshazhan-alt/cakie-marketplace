@@ -4,7 +4,7 @@ const User = require("./model");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, phone, address } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -20,7 +20,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role: "customer",
       phone,
       address,
     });
@@ -34,6 +34,7 @@ const registerUser = async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
+        isBlocked: user.isBlocked,
       },
     });
   } catch (error) {
@@ -44,6 +45,169 @@ const registerUser = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        message: "Your account has been blocked",
+      });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        isBlocked: user.isBlocked,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Login failed",
+      error: error.message,
+    });
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  try {
+    res.status(200).json({
+      user: req.user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get profile",
+      error: error.message,
+    });
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: { $ne: "admin" } }).select("-password");
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+}; 
+const updateUserBlockStatus = async (req, res) => {
+  try {
+    const { isBlocked } = req.body;
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.isBlocked = isBlocked;
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      message: updatedUser.isBlocked
+        ? "User blocked successfully"
+        : "User unblocked successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        isBlocked: updatedUser.isBlocked,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update user block status",
+      error: error.message,
+    });
+  }
+};
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+
+    const user = await User.findById(req.user._id || req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.name = name || user.name;
+    user.phone = phone || user.phone;
+    user.address = address || user.address;
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        isBlocked: updatedUser.isBlocked,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
+  loginUser,
+  getUserProfile,
+  getAllUsers,
+  updateUserBlockStatus,
+  updateUserProfile,
 };

@@ -1,83 +1,440 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Edit3,
+  Home,
+  LogOut,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  ShieldCheck,
+  UserCircle,
+  UserRound,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type User = {
+  _id?: string;
+  id?: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  address?: string;
+  isBlocked: boolean;
+};
+
 const Profile = () => {
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [editData, setEditData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
+
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5000/api/users/profile", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+          return;
+        }
+
+        setUser(data.user);
+        setEditData({
+          name: data.user.name || "",
+          phone: data.user.phone || "",
+          address: data.user.address || "",
+        });
+      } catch (error) {
+        console.error(error);
+        setMessage("Failed to load profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setMessage("");
+
+      const response = await fetch("http://localhost:5000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editData.name,
+          phone: editData.phone,
+          address: editData.address,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Failed to update profile");
+        return;
+      }
+
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setIsEditing(false);
+      setMessage("Profile updated successfully.");
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong while updating profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (!user) return;
+
+    setEditData({
+      name: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+    });
+
+    setIsEditing(false);
+    setMessage("");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  const handleBack = () => {
+    if (user?.role === "admin") {
+      navigate("/admin-dashboard");
+    } else {
+      navigate("/");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7f1]">
+        <div className="glass rounded-3xl px-8 py-6 text-center">
+          <UserCircle className="mx-auto mb-3 text-chocolate" size={36} />
+          <p className="text-[#5c4033] font-medium">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#fff7f1] px-4 py-28">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/80 backdrop-blur-md shadow-lg rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-[#5c4033] mb-2">
-            My Profile
-          </h1>
+    <div className="relative min-h-screen overflow-hidden bg-[#fff7f1] px-4 py-10 md:py-14">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed -right-32 -top-40 h-[420px] w-[420px] rounded-full bg-[#ffd6e4]/70 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed -bottom-40 -left-32 h-[420px] w-[420px] rounded-full bg-[#d4a45f]/20 blur-3xl"
+      />
 
-          <p className="text-gray-500 mb-8">
-            View and update your personal details.
-          </p>
+      <div className="relative mx-auto max-w-5xl">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            className="rounded-full bg-white/70"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Full Name
-              </label>
-              <Input className="mt-2" type="text" defaultValue="Iresha Fernando" />
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {!isEditing && (
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+              >
+                <Edit3 className="mr-2 h-4 w-4" />
+                Edit Profile
+              </Button>
+            )}
 
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Email Address
-              </label>
-              <Input className="mt-2" type="email" defaultValue="iresha@gmail.com" />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Phone Number
-              </label>
-              <Input className="mt-2" type="text" defaultValue="0771234567" />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Role
-              </label>
-              <Input className="mt-2" type="text" defaultValue="Customer" disabled />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm font-medium text-gray-600">
-                Address
-              </label>
-              <Input
-                className="mt-2"
-                type="text"
-                defaultValue="Maharagama, Colombo"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-8">
-            <Button className="bg-[#c7825a] hover:bg-[#a96846] px-8">
-              Update Profile
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="rounded-full border-red-100 bg-white/70 text-red-500 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-          <div className="bg-white/80 backdrop-blur-md shadow rounded-2xl p-5">
-            <p className="text-sm text-gray-500">Total Orders</p>
-            <h2 className="text-3xl font-bold text-[#5c4033] mt-2">12</h2>
-          </div>
+        <section className="glass relative overflow-hidden rounded-[2rem] p-6 shadow-soft md:p-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-[#ffd6e4]/80 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-[#d4a45f]/25 blur-3xl"
+          />
 
-          <div className="bg-white/80 backdrop-blur-md shadow rounded-2xl p-5">
-            <p className="text-sm text-gray-500">Pending Orders</p>
-            <h2 className="text-3xl font-bold text-[#5c4033] mt-2">2</h2>
-          </div>
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="grid h-20 w-20 place-items-center rounded-[1.7rem] bg-gradient-to-br from-[#ffd6c7] to-[#d4a45f]/60 text-chocolate shadow-elevated">
+                <UserCircle size={44} strokeWidth={1.5} />
+              </div>
 
-          <div className="bg-white/80 backdrop-blur-md shadow rounded-2xl p-5">
-            <p className="text-sm text-gray-500">Completed Orders</p>
-            <h2 className="text-3xl font-bold text-[#5c4033] mt-2">10</h2>
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1 text-xs text-chocolate shadow-soft">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  Account Profile
+                </div>
+
+                <h1 className="mt-3 font-display text-4xl font-semibold text-chocolate md:text-5xl">
+                  {user?.name || "My Profile"}
+                </h1>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  View and update your personal account details.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass rounded-2xl px-4 py-3">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-chocolate" />
+                <div>
+                  <p className="text-sm font-medium text-chocolate">
+                    {user?.isBlocked ? "Blocked Account" : "Active Account"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Role: {user?.role || "customer"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {message && (
+          <div className="mt-5 rounded-2xl border border-[#f1ded6] bg-white/80 px-5 py-3 text-sm text-chocolate">
+            {message}
+          </div>
+        )}
+
+        {user && (
+          <>
+            <section className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="glass rounded-3xl p-5">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-white/70 text-chocolate shadow-soft">
+                  <UserRound className="h-5 w-5" />
+                </div>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Role
+                </p>
+                <h2 className="mt-2 font-display text-3xl font-semibold capitalize text-chocolate">
+                  {user.role}
+                </h2>
+              </div>
+
+              <div className="glass rounded-3xl p-5">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-white/70 text-chocolate shadow-soft">
+                  <BadgeCheck className="h-5 w-5" />
+                </div>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Status
+                </p>
+                <h2
+                  className={`mt-2 font-display text-3xl font-semibold ${
+                    user.isBlocked ? "text-red-600" : "text-green-700"
+                  }`}
+                >
+                  {user.isBlocked ? "Blocked" : "Active"}
+                </h2>
+              </div>
+
+              <div className="glass rounded-3xl p-5">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-white/70 text-chocolate shadow-soft">
+                  <Home className="h-5 w-5" />
+                </div>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Account Type
+                </p>
+                <h2 className="mt-2 font-display text-3xl font-semibold capitalize text-chocolate">
+                  Cakie {user.role}
+                </h2>
+              </div>
+            </section>
+
+            <section className="glass mt-6 rounded-3xl p-6 md:p-8">
+              <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="font-display text-3xl text-chocolate">
+                    Personal Details
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {isEditing
+                      ? "Update your editable account details below."
+                      : "These details are saved in your Cakie account."}
+                  </p>
+                </div>
+
+                {isEditing && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={saving}
+                      className="rounded-full bg-[#c7825a] hover:bg-[#a96846]"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                      className="rounded-full bg-white/70"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#5c4033]">
+                    <UserRound className="h-4 w-4" />
+                    Full Name
+                  </label>
+                  <Input
+                    className="bg-white/70"
+                    type="text"
+                    name="name"
+                    value={isEditing ? editData.name : user.name}
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#5c4033]">
+                    <Mail className="h-4 w-4" />
+                    Email Address
+                  </label>
+                  <Input
+                    className="bg-white/70"
+                    type="email"
+                    value={user.email}
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#5c4033]">
+                    <Phone className="h-4 w-4" />
+                    Phone Number
+                  </label>
+                  <Input
+                    className="bg-white/70"
+                    type="text"
+                    name="phone"
+                    value={isEditing ? editData.phone : user.phone || "Not provided"}
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#5c4033]">
+                    <ShieldCheck className="h-4 w-4" />
+                    Role
+                  </label>
+                  <Input
+                    className="bg-white/70 capitalize"
+                    type="text"
+                    value={user.role}
+                    readOnly
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#5c4033]">
+                    <MapPin className="h-4 w-4" />
+                    Address
+                  </label>
+                  <Input
+                    className="bg-white/70"
+                    type="text"
+                    name="address"
+                    value={
+                      isEditing ? editData.address : user.address || "Not provided"
+                    }
+                    onChange={handleEditChange}
+                    readOnly={!isEditing}
+                  />
+                </div>
+              </div>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

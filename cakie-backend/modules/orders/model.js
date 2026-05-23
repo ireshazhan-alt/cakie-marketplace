@@ -40,6 +40,19 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
+    billingName: {
+        type: String,
+        required: true,
+    },
+    phoneNumber: {
+        type: String,
+        required: true,
+    },
+    paymentMethod: {
+        type: String,
+        enum: ["Cash on Delivery", "Card Payment", "Bank Transfer"],
+        default: "Cash on Delivery",
+    },
   },
   {
     timestamps: true,

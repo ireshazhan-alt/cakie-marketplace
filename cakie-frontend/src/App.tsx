@@ -7,6 +7,7 @@ import MyOrders from "./pages/MyOrders";
 import ManageOrders from "./pages/ManageOrders";
 import ManageUsers from "./pages/ManageUsers";
 import OrderDetails from "./pages/OrderDetails";
+import PlaceOrder from "./pages/PlaceOrder";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/manage-orders" element={<ManageOrders />} />
         <Route path="/manage-users" element={<ManageUsers />} />
         <Route path="/order-details" element={<OrderDetails />} />
+        <Route path="/place-order" element={<PlaceOrder />} />
       </Routes>
     </BrowserRouter>
   );

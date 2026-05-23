@@ -137,7 +137,7 @@ const MyOrders = () => {
                     {order.orderStatus}
                   </span>
 
-                  <Button className="bg-[#c7825a] hover:bg-[#a96846] rounded-full">
+                  <Button onClick={() => navigate(`/orders/${order._id}`)}>
                     View Details
                   </Button>
                 </div>

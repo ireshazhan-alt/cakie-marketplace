@@ -20,7 +20,7 @@ function App() {
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/manage-orders" element={<ManageOrders />} />
         <Route path="/manage-users" element={<ManageUsers />} />
-        <Route path="/order-details" element={<OrderDetails />} />
+        <Route path="/orders/:id" element={<OrderDetails />} />
         <Route path="/place-order" element={<PlaceOrder />} />
       </Routes>
     </BrowserRouter>

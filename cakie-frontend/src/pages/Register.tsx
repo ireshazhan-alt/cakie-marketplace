@@ -29,6 +29,7 @@ const Register = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSellerRegistration, setIsSellerRegistration] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -55,6 +56,7 @@ const Register = () => {
           password: formData.password,
           phone: formData.phone,
           address: formData.address,
+          isSeller: isSellerRegistration,
         }),
       });
 
@@ -65,10 +67,19 @@ const Register = () => {
         return;
       }
 
-      setMessage("Registration successful! Redirecting to login...");
+      // Save the token for the new account
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      setMessage("Registration successful! Redirecting...");
 
       setTimeout(() => {
-        navigate("/login");
+        if (isSellerRegistration) {
+          navigate("/seller-onboarding");
+        } else {
+          navigate("/login");
+        }
       }, 1000);
     } catch (error) {
       console.error(error);
@@ -242,6 +253,29 @@ const Register = () => {
                   className="bg-white/70"
                 />
               </div>
+
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="isSeller"
+                  name="isSeller"
+                  checked={isSellerRegistration}
+                  onChange={(e) => setIsSellerRegistration(e.target.checked)}
+                  className="mt-1 h-4 w-4 cursor-pointer rounded border-input text-chocolate focus:ring-chocolate"
+                />
+                <label
+                  htmlFor="isSeller"
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
+                  I want to register as a seller and list my cakes
+                </label>
+              </div>
+
+              {isSellerRegistration && (
+                <div className="rounded-2xl bg-[#fff8f1] border border-[#f1ded6] px-4 py-3 text-sm text-[#8a5438]">
+                  After registration, you'll be guided to create your shop profile and start listing cakes.
+                </div>
+              )}
 
               {message && (
                 <p className="rounded-2xl bg-[#fff7f1] px-4 py-3 text-center text-sm text-[#8a5438]">

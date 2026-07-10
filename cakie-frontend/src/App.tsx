@@ -9,6 +9,16 @@ import ManageUsers from "./pages/ManageUsers";
 import OrderDetails from "./pages/OrderDetails";
 import PlaceOrder from "./pages/PlaceOrder";
 import AdminDashboard from "./pages/AdminDashboard";
+
+// ← your new pages
+import SellerDashboard from "./pages/SellerDashboard";
+import ManageCakes from "./pages/ManageCakes";
+import AddCake from "./pages/AddCake";
+import EditCake from "./pages/EditCake";
+import CakeDetails from "./pages/CakeDetails";
+import SellerProfile from "./pages/SellerProfile";
+import SellerOnboarding from "./pages/SellerOnboarding";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -19,6 +29,8 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/cakes/:id" element={<CakeDetails />} />             {/* public */}
+        <Route path="/sellers/:id" element={<SellerProfile />} />         {/* public */}
 
         {/* Logged-in user routes */}
         <Route
@@ -57,6 +69,16 @@ function App() {
           }
         />
 
+        {/* Seller onboarding route */}
+        <Route
+          path="/seller-onboarding"
+          element={
+            <ProtectedRoute>
+              <SellerOnboarding />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Admin routes */}
         <Route
           path="/admin-dashboard"
@@ -81,6 +103,43 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin", "seller"]}>
               <ManageOrders />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Seller routes — your new pages */}
+        <Route
+          path="/seller-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["seller", "admin"]}>
+              <SellerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manage-cakes"
+          element={
+            <ProtectedRoute allowedRoles={["seller", "admin"]}>
+              <ManageCakes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/add-cake"
+          element={
+            <ProtectedRoute allowedRoles={["seller", "admin"]}>
+              <AddCake />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit-cake/:id"
+          element={
+            <ProtectedRoute allowedRoles={["seller", "admin"]}>
+              <EditCake />
             </ProtectedRoute>
           }
         />

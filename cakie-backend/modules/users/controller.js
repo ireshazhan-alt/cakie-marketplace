@@ -4,7 +4,7 @@ const User = require("./model");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address, isSeller } = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -20,13 +20,25 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: "customer",
+      role: isSeller ? "seller" : "customer",
       phone,
       address,
     });
 
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
     res.status(201).json({
       message: "User registered successfully",
+      token,
       user: {
         id: user._id,
         name: user.name,

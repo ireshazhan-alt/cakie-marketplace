@@ -1,168 +1,268 @@
 # Cakie Marketplace
 
-Cakie Marketplace is a full-stack cake ordering and seller management platform where customers can browse cakes, place orders, and track purchases, while sellers can manage their catalog and fulfillment. The project includes role-based access for customers, sellers, and administrators.
+A full-stack marketplace application for custom cakes, built with a React + TypeScript frontend and an Express + MongoDB backend. The app supports customer ordering, seller onboarding, product management, and admin oversight.
 
-## Features
+## Overview
 
-- Browse and view detailed cake listings
-- Seller onboarding and seller profiles
-- Cake management for sellers (add, edit, remove listings)
-- Customer order placement and order tracking
-- Seller order management and dashboard views
-- Admin dashboard for managing users and orders
-- JWT-based authentication and protected routes
-- REST API backend with MongoDB
-- Responsive frontend built with React, Vite, and Tailwind CSS
+Cakie Marketplace enables three user roles:
+
+- Customer: browse cakes, place orders, track purchase history
+- Seller: manage cake listings, manage assigned orders, onboard as a seller
+- Admin: manage users and oversee marketplace operations
+
+The repository is split into two main parts:
+
+- `cakie-frontend/` — Vite + React + TypeScript client
+- `cakie-backend/` — Express API server with Mongoose and JWT auth
 
 ## Tech Stack
 
 ### Frontend
-- React
+- React 19
 - TypeScript
 - Vite
 - Tailwind CSS
 - React Router
-- Lucide icons
+- Lucide React
+- Radix UI primitives
 
 ### Backend
 - Node.js
-- Express.js
-- MongoDB with Mongoose
+- Express 5
+- MongoDB via Mongoose
 - JWT authentication
-- CORS and dotenv
+- bcryptjs
+- dotenv
+- CORS
 
-## Project Structure
+## Repository Structure
 
 ```bash
 cakie-marketplace/
+├── README.md
+├── package.json
+├── package-lock.json
 ├── cakie-backend/
 │   ├── config/
+│   │   └── db.js
 │   ├── middleware/
+│   │   └── authMiddleware.js
 │   ├── modules/
-│   ├── .env.example
+│   │   ├── users/
+│   │   ├── cakes/
+│   │   ├── sellers/
+│   │   └── orders/
 │   ├── package.json
+│   ├── package-lock.json
 │   ├── server.js
-│   └── ...
+│   └── .env
 ├── cakie-frontend/
 │   ├── public/
 │   ├── src/
+│   ├── components.json
+│   ├── eslint.config.js
+│   ├── index.html
 │   ├── package.json
-│   ├── vite.config.ts
+│   ├── postcss.config.js
 │   ├── tailwind.config.ts
-│   └── ...
-├── package.json
-├── package-lock.json
-└── README.md
+│   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── .gitignore
+└── .gitignore
 ```
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
+- Node.js 18+
+- npm
+- MongoDB instance or MongoDB Atlas connection string
 
-- Node.js v18+
-- npm or yarn
-- MongoDB instance (local or cloud such as MongoDB Atlas)
+## Environment Configuration
 
-### 1. Clone the repository
+### Backend
+Create a `.env` file in `cakie-backend/`:
 
-```bash
-git clone https://github.com/ireshazhan-alt/cakie-marketplace.git
-cd cakie-marketplace
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/cakie-marketplace
+JWT_SECRET=your_secure_jwt_secret
 ```
 
-### 2. Setup backend
+## Installation
+
+### 1. Install backend dependencies
 
 ```bash
 cd cakie-backend
 npm install
 ```
 
-Create a `.env` file in `cakie-backend` with the following values:
-
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/cakie-marketplace
-JWT_SECRET=your_super_secret_key
-```
-
-Start the backend:
+### 2. Install frontend dependencies
 
 ```bash
+cd ../cakie-frontend
+npm install
+```
+
+## Running the Application
+
+### Start the backend
+
+```bash
+cd cakie-backend
 npm run dev
 ```
 
-The backend will run at:
+This starts the Express API on:
 
 ```bash
 http://localhost:5000
 ```
 
-### 3. Setup frontend
-
-Open a new terminal and run:
+### Start the frontend
 
 ```bash
 cd cakie-frontend
-npm install
 npm run dev
 ```
 
-The frontend will run at:
+This starts the Vite dev server on:
 
 ```bash
 http://localhost:5173
 ```
 
-## API Overview
+## Backend API
 
-The backend exposes REST endpoints under the following routes:
+The Express app mounts route modules in `server.js`:
 
-- `/api/users` — user registration, login, and profile management
-- `/api/cakes` — cake listing and management
-- `/api/orders` — customer and seller order operations
-- `/api/sellers` — seller onboarding and seller-related data
+```js
+app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cakes", cakeRoutes);
+app.use("/api/sellers", sellerRoutes);
+```
 
-## Roles and Access
+### Route Modules
+
+- `cakie-backend/modules/users/` — authentication, profile, and account management
+- `cakie-backend/modules/cakes/` — cake listing CRUD logic
+- `cakie-backend/modules/orders/` — customer and seller order management
+- `cakie-backend/modules/sellers/` — seller onboarding and seller data management
+
+### Database Connection
+
+Database connectivity is configured in:
+
+```js
+cakie-backend/config/db.js
+```
+
+It uses `mongoose.connect(process.env.MONGO_URI)` and exits the process if the connection fails.
+
+## Frontend Application Structure
+
+The frontend uses a route-based structure in `src/App.tsx`:
+
+- Public routes:
+  - `/`
+  - `/login`
+  - `/register`
+  - `/cakes/:id`
+  - `/sellers/:id`
+- Protected routes:
+  - `/profile`
+  - `/my-orders`
+  - `/orders/:id`
+  - `/place-order`
+  - `/seller-onboarding`
+  - `/admin-dashboard`
+  - `/manage-users`
+  - `/manage-orders`
+  - `/seller-dashboard`
+  - `/manage-cakes`
+  - `/add-cake`
+  - `/edit-cake/:id`
+
+## Role-Based Access Model
 
 ### Customer
-- Browse cakes
-- View cake details
-- Place orders
-- View personal order history
+- Browse cakes and seller profiles
+- Place and view orders
+- Access personal account pages
 
 ### Seller
-- Register or onboard as a seller
-- Add and edit cakes
-- Manage orders assigned to their products
 - View seller dashboard
+- Add/edit cake listings
+- Manage orders linked to seller products
+- Complete seller onboarding flow
 
 ### Admin
-- Manage users
-- Manage orders
-- View administrative dashboard
-- Access higher-level controls across the platform
+- Access administrative dashboards
+- Manage marketplace users and orders
+- Control higher-level business operations
 
-## Development Notes
+## Authentication Design
 
-The application is structured as a monorepo-style project with separate frontend and backend folders. The backend handles authentication, database communications, and API logic, while the frontend manages the storefront, dashboards, and user experience.
+The backend uses JSON Web Tokens and middleware for protected endpoints. The project contains:
+
+```bash
+cakie-backend/middleware/authMiddleware.js
+```
+
+This middleware is designed to validate tokens and authorize protected resources for authenticated users.
+
+## Notes for Developers
+
+- The frontend is built with component-driven architecture under `cakie-frontend/src/components/`.
+- Styling is handled with Tailwind and reusable UI components under `src/components/ui/`.
+- The backend uses modular route and model organization under `modules/` for maintainability.
+- The application is currently in a marketplace/prototype stage and is structured to support scalable extension.
+
+## Common Commands
+
+### Backend
+
+```bash
+cd cakie-backend
+npm install
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd cakie-frontend
+npm install
+npm run dev
+npm run build
+```
+
+## Production Notes
+
+Before deploying:
+
+- configure a real MongoDB URI
+- set secure JWT secrets
+- set environment-specific CORS policies
+- build the frontend using `npm run build`
+- serve the frontend and backend through a deployment platform or reverse proxy
 
 ## License
 
-This project does not currently specify a license in the repository metadata.
-
-## Project Status
-
-This is a working full-stack marketplace prototype focused on cake commerce workflows, seller management, and order handling.
+No explicit license file is present in the repository metadata at this time.
 
 ## Contributing
 
-Contributions are welcome. To contribute:
-
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Open a pull request
+3. Implement your changes
+4. Commit and push your branch
+5. Open a pull request for review
 
 ## Contact
 
-For questions or collaboration opportunities, please contact the repository owner via GitHub.
+Repository owner: `ireshazhan-alt`
+Project: `cakie-marketplace`
